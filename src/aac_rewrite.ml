@@ -25,10 +25,8 @@ let time_tac msg tac =
 let tclTac_or_exn (tac : 'a Proofview.tactic) exn msg : 'a Proofview.tactic =
   Proofview.tclORELSE tac
     (fun e ->
-      let open Proofview.Notations in
       let open Proofview in
-      tclEVARMAP >>= fun sigma ->
-      Goal.enter_one (fun gl ->
+      Goal.enter_one (fun sigma gl ->
           let env = Proofview.Goal.env gl in
           pr_constr env sigma "last goal" (Goal.concl gl);
           exn msg e)
@@ -201,7 +199,7 @@ let aac_normalise =
   let norm_tac = Locus.ArgArg (None, norm_tac) in
   let open Proofview.Notations in
   let open Proofview in
-  Proofview.Goal.enter (fun goal -> 
+  Proofview.Goal.enter (fun _ goal ->
       let ids = Tacmach.New.pf_ids_of_hyps goal in
       let env = Proofview.Goal.env goal in
       tclEVARMAP >>= fun sigma ->
@@ -218,8 +216,7 @@ let aac_normalise =
 let aac_reflexivity : unit Proofview.tactic =
   let open Proofview.Notations in
   let open Proofview in
-  tclEVARMAP >>= fun sigma ->
-  Goal.enter (fun goal ->
+  Goal.enter (fun sigma goal ->
       let env = Proofview.Goal.env goal in
       let concl = Goal.concl goal in
       let sigma,zero,lift,ir,t,t' = aac_conclude env sigma concl in
@@ -245,7 +242,7 @@ let aac_reflexivity : unit Proofview.tactic =
 let lift_transitivity in_left (step:constr) preorder lifting (using_eq : Coq.Equivalence.t): unit Proofview.tactic =
   let open Proofview.Notations in
   let open Proofview in
-  Proofview.Goal.enter (fun goal ->
+  Proofview.Goal.enter (fun _ goal ->
       (* catch the equation and the two members*)
       let concl = Proofview.Goal.concl goal in
       let env = Proofview.Goal.env goal in
@@ -286,7 +283,7 @@ let core_aac_rewrite ?abort
       (by_aac_reflexivity : Matcher.Terms.t -> Matcher.Terms.t -> unit Proofview.tactic)
       (tr : constr) t left : unit Proofview.tactic =
   let open Proofview.Notations in
-  Proofview.Goal.enter (fun goal ->
+  Proofview.Goal.enter (fun _ goal ->
       let env = Proofview.Goal.env goal in
       Proofview.tclEVARMAP >>= fun sigma ->
       pr_constr env sigma "transitivity through" tr;
@@ -313,7 +310,7 @@ exception NoSolutions
    printed monad, this function has to be updated accordingly *)
 let choose_subst  subterm sol m=
   try
-    let (depth,pat,envm) =  match subterm with
+    let (_depth,pat,envm) =  match subterm with
       | None -> 			(* first solution *)
 	List.nth ( List.rev (Search_monad.to_list m)) 0
       | Some x ->
@@ -333,7 +330,7 @@ let choose_subst  subterm sol m=
 let aac_rewrite_wrap  ?abort ?(l2r=true) ?(show = false) ?(in_left=true) ?strict ?extra ~occ_subterm ~occ_sol rew : unit Proofview.tactic =
   let open Proofview.Notations in
   let open Proofview in
-  Proofview.Goal.enter (fun goal ->
+  Proofview.Goal.enter (fun _ goal ->
       let envs = Theory.Trans.empty_envs () in
       let (concl : types) = Proofview.Goal.concl goal in
       let env = Proofview.Goal.env goal in
@@ -344,7 +341,7 @@ let aac_rewrite_wrap  ?abort ?(l2r=true) ?(show = false) ?(in_left=true) ?strict
         | Some (left, right, rlt) -> left,right,rlt
       in
       let check_type x =
-        Tacmach.New.pf_conv_x goal x rlt.Coq.Relation.carrier
+        Tacmach.New.pf_conv_x sigma goal x rlt.Coq.Relation.carrier
       in
       let hypinfo = Coq.Rewrite.get_hypinfo env sigma rew ~l2r ?check_type:(Some check_type) in      
       let sigma,rewinfo = dispatch env sigma in_left concl hypinfo in

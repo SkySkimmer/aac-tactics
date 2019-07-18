@@ -132,9 +132,6 @@ val tclTIME : string -> Proofview.V82.tac -> Proofview.V82.tac
 (** emit debug messages to see which tactics are failing *)
 val tclDEBUG : string -> unit Proofview.tactic
 
-(** print the current goal *)
-val tclPRINT : unit Proofview.tactic
-
 (** {2 Error related mechanisms}  *)
 
 val anomaly : string -> 'a

@@ -966,8 +966,7 @@ module Trans = struct
   let build_sigma_maps (rlt : Coq.Relation.t) zero ir : (sigmas * sigma_maps) Proofview.tactic =
     let open Proofview.Notations in
     let open Proofview in
-    tclEVARMAP >>= fun sigma ->
-    Proofview.Goal.enter_one (fun goal ->
+    Proofview.Goal.enter_one (fun sigma goal ->
         let env = Proofview.Goal.env goal in
         let sigma,rp = build_reif_params env sigma rlt zero in
         Unsafe.tclEVARS sigma

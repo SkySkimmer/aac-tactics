@@ -50,10 +50,8 @@ let retype c gl =
 (* similar to retype above. No Idea when/why this is needed, I smell some ugly hack.
   Apparently, it has to do with the need to recompute universe constrains if we just compose terms *)
 let tclRETYPE c=
-  let open Proofview.Notations in
   let open Proofview in
-  tclEVARMAP >>= fun sigma ->
-  Proofview.Goal.enter (fun goal ->
+  Proofview.Goal.enter (fun sigma goal ->
       let env = Proofview.Goal.env goal in
       let sigma,_ = Typing.type_of env sigma c in
       Unsafe.tclEVARS sigma
@@ -72,12 +70,6 @@ let tclDEBUG msg =
   tclBIND (tclUNIT ())
   (fun _ -> let _ = Feedback.msg_debug (Pp.str msg) in tclUNIT ())
     
-
-let tclPRINT =
-  let open Proofview in
-  Proofview.Goal.enter (fun goal ->
-      let _ = Feedback.msg_notice (Printer.pr_goal (Proofview.Goal.print goal)) in                  
-      tclUNIT ())
 
 let show_proof pstate : unit =
   let sigma, env = Pfedit.get_current_context pstate in
@@ -103,7 +95,7 @@ let mk_letin (name:string) (c: constr) : constr Proofview.tactic =
   let open Proofview.Notations in
   let open Proofview in
   let name = (Id.of_string name) in
-  Proofview.Goal.enter_one (fun goal ->
+  Proofview.Goal.enter_one (fun _ goal ->
       let env = Proofview.Goal.env goal in
       let name =  Tactics.fresh_id_in_env Id.Set.empty name env in
       tclRETYPE c (* this fixes universe constrains problems in c *)
